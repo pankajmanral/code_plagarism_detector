@@ -19,11 +19,14 @@ class CompareRequest(BaseModel):
 
 class SimilarityDetails(BaseModel):
     """Breakdown of the similarity analysis."""
-    node_similarity: float = Field(..., ge=0, le=1, description="Cosine similarity on AST node-type frequencies")
-    structure_similarity: float = Field(..., ge=0, le=1, description="Structural similarity score")
-    cosine_similarity: float = Field(..., ge=0, le=1, description="Overall cosine similarity of full feature vectors")
-    knn_prediction: Optional[bool] = Field(None, description="KNN model prediction (True = plagiarised)")
-    knn_confidence: Optional[float] = Field(None, ge=0, le=1, description="KNN prediction confidence")
+    node_similarity: float = Field(..., ge=0, le=1)
+    structure_similarity: float = Field(..., ge=0, le=1)
+    cosine_similarity: float = Field(..., ge=0, le=1)
+    knn_prediction: Optional[bool] = Field(None)
+    knn_confidence: Optional[float] = Field(None, ge=0, le=1)
+    knn_distance: Optional[float] = Field(None)
+    ast_nodes_1: int = Field(0, description="Total AST nodes in snippet 1")
+    ast_nodes_2: int = Field(0, description="Total AST nodes in snippet 2")
 
 
 class CompareResponse(BaseModel):

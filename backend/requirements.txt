@@ -6,7 +6,7 @@ pandas
 networkx
 python-multipart
 pydantic
-tree-sitter-languages
+tree-sitter-language-pack
 tree-sitter
 tree-sitter-python
 tree-sitter-javascript

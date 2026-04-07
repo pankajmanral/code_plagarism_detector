@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 # Tree-sitter imports (optional)
 try:
     import tree_sitter
-    from tree_sitter_languages import get_language, get_parser
+    from tree_sitter_language_pack import get_language, get_parser
     HAS_TREE_SITTER = True
 except ImportError:
     HAS_TREE_SITTER = False

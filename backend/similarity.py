@@ -58,6 +58,14 @@ class SimilarityEngine:
         Full comparison pipeline.
         """
         extractor = self._get_extractor(language)
+        
+        # 1. Parse and extract metadata (needed for counts)
+        tree1 = extractor.parser.parse(code1)
+        tree2 = extractor.parser.parse(code2)
+        n1 = extractor.parser.count_nodes(tree1)
+        n2 = extractor.parser.count_nodes(tree2)
+
+        # 2. Extract feature vectors
         vec1 = extractor.extract(code1)
         vec2 = extractor.extract(code2)
 
@@ -71,8 +79,15 @@ class SimilarityEngine:
         # ── KNN prediction (if model is loaded) ──────────────────────────
         knn_pred: Optional[bool] = None
         knn_conf: float = 0.0
+        knn_dist: Optional[float] = None
+        
         if self.knn is not None and self.scaler is not None:
             knn_pred, knn_conf = self._knn_predict(vec1, vec2)
+            # Fetch actual distance to neighbors
+            diff = np.abs(vec1 - vec2).reshape(1, -1)
+            diff_scaled = self.scaler.transform(diff)
+            dists, _ = self.knn.kneighbors(diff_scaled)
+            knn_dist = float(np.mean(dists))
 
         # ── Combined score ────────────────────────────────────────────────
         # Weighted blend: 60 % cosine, 25 % node, 15 % structure
@@ -95,6 +110,9 @@ class SimilarityEngine:
                 "cosine_similarity": round(float(cos_sim), 4),
                 "knn_prediction": knn_pred,
                 "knn_confidence": round(float(knn_conf), 4) if knn_pred is not None else None,
+                "knn_distance": round(float(knn_dist), 4) if knn_dist is not None else None,
+                "ast_nodes_1": n1,
+                "ast_nodes_2": n2,
             },
         }
 
@@ -210,12 +228,27 @@ class SimilarityEngine:
             pickle.dump(self.scaler, f)
 
     def _load_model(self) -> None:
+        """Load the KNN and Scaler models, validating feature counts."""
         if _KNN_MODEL_PATH.exists() and _SCALER_PATH.exists():
             try:
                 with open(_KNN_MODEL_PATH, 'rb') as f:
-                    self.knn = pickle.load(f)
+                    knn = pickle.load(f)
                 with open(_SCALER_PATH, 'rb') as f:
-                    self.scaler = pickle.load(f)
-            except Exception:
+                    scaler = pickle.load(f)
+                
+                # Validate feature dimensions
+                expected = len(self.extractor.feature_names())
+                # StandardScaler in recent sklearn has n_features_in_
+                actual = getattr(scaler, 'n_features_in_', None)
+                
+                if actual is not None and actual != expected:
+                    print(f"⚠️  Model feature mismatch: expected {expected}, got {actual}. Trashing old model.")
+                    self.knn = None
+                    self.scaler = None
+                else:
+                    self.knn = knn
+                    self.scaler = scaler
+            except Exception as e:
+                print(f"⚠️  Failed to load model: {e}")
                 self.knn = None
                 self.scaler = None

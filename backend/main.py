@@ -37,11 +37,28 @@ async def lifespan(app: FastAPI):
     init_db()
     # Auto-train KNN if no saved model exists
     engine = get_engine()
+    
+    msg = "🚀 Starting Plagiarism Detector Backend...\n"
     if engine.knn is None:
-        print("⏳  Training KNN model on startup …")
+        msg += "⏳  Training KNN model on startup — This may take a few seconds...\n"
+        print(msg, flush=True) # Forced flush for immediate output
+        
         pairs, labels = generate_training_pairs()
         info = engine.train_knn(pairs, labels, n_neighbors=5)
-        print(f"✅  KNN trained — accuracy {info['accuracy']:.2%} on {info['samples']} samples")
+        
+        success_msg = f"✅  KNN trained — accuracy {info['accuracy']:.2%} on {info['samples']} samples\n"
+        print(success_msg, flush=True)
+        msg += success_msg
+    else:
+        ready_msg = "✅  KNN model loaded from disk.\n"
+        print(ready_msg, flush=True)
+        msg += ready_msg
+
+    # Also write to a persistent log file so user can check it
+    with open("startup.log", "a", encoding="utf-8") as f:
+        f.write(f"\n--- {os.getenv('COMPUTERNAME', 'LOCAL')} startup ---\n")
+        f.write(msg)
+    
     yield
     print("👋  Shutting down.")
 
