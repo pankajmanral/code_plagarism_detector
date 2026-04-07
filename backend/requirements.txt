@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+scikit-learn
+numpy
+pandas
+networkx
+python-multipart
+pydantic
+tree-sitter-languages
+tree-sitter
+tree-sitter-python
+tree-sitter-javascript
+tree-sitter-java
+tree-sitter-cpp
