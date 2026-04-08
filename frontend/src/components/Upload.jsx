@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { UploadCloud, Code, FileText, CheckCircle2, ChevronRight, Loader2 } from 'lucide-react';
 import { cn } from '../utils';
 
-const API_URL = 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export function Upload({ onAnalysisComplete }) {
     const [method, setMethod] = useState('text'); // text or file

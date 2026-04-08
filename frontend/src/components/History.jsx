@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Clock, AlertCircle, CheckCircle, ShieldAlert, Trash2, Loader2 } from 'lucide-react';
 import { cn } from '../utils';
 
-const API_URL = 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export function History() {
   const [history, setHistory] = useState([]);
